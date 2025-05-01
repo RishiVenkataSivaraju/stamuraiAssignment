@@ -1,12 +1,12 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #b0b0b0; /* Grey background */
+  --foreground: #ff6f00; /* Sunset Orange text */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #333333; /* Dark grey background */
+    --foreground: #ff6f00; /* Sunset Orange text */
   }
 }
 
@@ -40,3 +40,4 @@ a {
     color-scheme: dark;
   }
 }
+
