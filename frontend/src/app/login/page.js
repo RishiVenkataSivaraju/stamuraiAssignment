@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Link from "next/link";
 
 export default function Login() {
   const [formData, setFormData] = useState({ username: "", password: "" });
@@ -17,21 +18,24 @@ export default function Login() {
       const res = await fetch("http://localhost:8080/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // for session cookies
+        credentials: "include", // Ensure cookies/session are included
         body: JSON.stringify(formData),
       });
+
       const text = await res.text();
-      setMessage(text);
+      if (res.ok) {
+        setMessage("Logged in successfully! Redirecting...");
+        setTimeout(() => {
+          window.location.href = "/dashboard"; // Redirect after login
+        }, 1500);
+      } else {
+        setMessage(text); // Display error message from backend
+      }
     } catch (err) {
-      setMessage("Login failed");
       console.error(err);
+      setMessage("Login failed");
     }
   };
-
-  useEffect(() => {
-    // Ensure that any dynamic logic or date formatting happens only on the client
-    // This can help avoid mismatches between SSR and client rendering
-  }, []);
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -40,6 +44,7 @@ export default function Login() {
         <input
           name="username"
           placeholder="Username"
+          value={formData.username}
           onChange={handleChange}
           required
         />
@@ -48,6 +53,7 @@ export default function Login() {
           name="password"
           type="password"
           placeholder="Password"
+          value={formData.password}
           onChange={handleChange}
           required
         />
@@ -64,3 +70,4 @@ export default function Login() {
     </div>
   );
 }
+

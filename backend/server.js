@@ -9,25 +9,28 @@ const initializePassport = require("./config/passportConfig");
 dotenv.config();  // Load environment variables
 
 const app = express();
+app.use(cors({
+    origin: "http://localhost:3000", // Allow requests from frontend
+    credentials: true,              // Allow sending cookies (for session)
+}));
 
 // 1. MongoDB Connection
 mongoose.connect("mongodb+srv://sivarajurishi:57BDRZdE0kvk7rAT@assignment.kuwqzsp.mongodb.net/", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
 })
-  .then(() => console.log("🗄️  Connected to MongoDB"))
-  .catch(err => {
-    console.error("❌ MongoDB connection error:", err);
-    process.exit(1);  // Exit process on connection failure
-  });
+    .then(() => console.log("🗄️  Connected to MongoDB"))
+    .catch(err => {
+        console.error("❌ MongoDB connection error:", err);
+        process.exit(1);  // Exit process on connection failure
+    });
 
 // 2. Middlewares
-app.use(cors());
 app.use(express.json());  // To parse JSON bodies
 app.use(session({
-  secret: process.env.SESSION_SECRET || "testsecret",
-  resave: false,
-  saveUninitialized: false,
+    secret: "testsecret",
+    resave: false,
+    saveUninitialized: false,
 }));
 
 // Initialize Passport.js for authentication
@@ -41,12 +44,15 @@ app.use("/auth", authRoutes);
 
 // Test Route (optional, can be removed later)
 app.get("/", (req, res) => {
-  res.send("Hello from Express backend");
+    res.send("Hello from Express backend");
 });
 
 const PORT = process.env.PORT || 8080;
 
+app.get("/tasks", (req, res) => {
+    res.send("TASKS NEED TO BE DONE")
+})
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });
 
