@@ -42,6 +42,10 @@ app.use(passport.session());
 const authRoutes = require("./routes/auth");
 app.use("/auth", authRoutes);
 
+const taskRoutes = require("./routes/tasks");
+app.use("/tasks", taskRoutes);
+
+
 // Test Route (optional, can be removed later)
 app.get("/", (req, res) => {
     res.send("Hello from Express backend");
