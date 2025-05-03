@@ -1,6 +1,7 @@
 const express = require("express");
 const Task = require("../Schemas/TaskSchema");
 const router = express.Router();
+const Notification = require('../Schemas/NotificationSchema');
 
 // Ensure authentication middleware (you already have this)
 function ensureAuth(req, res, next) {
@@ -11,6 +12,27 @@ function ensureAuth(req, res, next) {
 router.use(ensureAuth);
 
 // ✅ Create a Task
+// router.post("/", async (req, res) => {
+//   try {
+//     const { title, description, dueDate, priority, status, assignee } = req.body;
+
+//     // Ensure priority and status are in valid format
+//     const task = await Task.create({
+//       title,
+//       description,
+//       dueDate,
+//       priority: priority.toLowerCase(), // "Low" → "low"
+//       status: status.toLowerCase().replace(" ", "-"), // "In Progress" → "in-progress"
+//       assignee, 
+//       createdBy: req.user._id,  // userId from session
+//       userId: req.user._id, // ensure userId is properly set
+//     });
+
+//     res.status(201).json(task);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
 router.post("/", async (req, res) => {
   try {
     const { title, description, dueDate, priority, status, assignee } = req.body;
@@ -27,12 +49,20 @@ router.post("/", async (req, res) => {
       userId: req.user._id, // ensure userId is properly set
     });
 
+    // Send notification to assignee
+    if (assignee) {
+      await Notification.create({
+        user: assignee,   // User to whom the task is assigned
+        task: task._id,   // Task ID
+        message: `You’ve been assigned: ${task.title}`,
+      });
+    }
+
     res.status(201).json(task);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
-
 
 // ✅ Get All Tasks for the Logged-in User
 router.get("/", async (req, res) => {
@@ -80,5 +110,7 @@ router.delete("/:taskId", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
 
 module.exports = router;
