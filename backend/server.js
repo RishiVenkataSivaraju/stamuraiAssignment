@@ -45,6 +45,10 @@ app.use("/auth", authRoutes);
 const taskRoutes = require("./routes/tasks");
 app.use("/tasks", taskRoutes);
 
+const notifications = require("./routes/notifications");
+app.use("/notifications", notifications);
+
+
 
 // Test Route (optional, can be removed later)
 app.get("/", (req, res) => {

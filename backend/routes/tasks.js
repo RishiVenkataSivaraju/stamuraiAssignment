@@ -2,28 +2,49 @@ const express = require("express");
 const Task = require("../Schemas/TaskSchema");
 const router = express.Router();
 
+// Ensure authentication middleware (you already have this)
+function ensureAuth(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.status(401).send("Not authenticated");
+}
+
+router.use(ensureAuth);
+
 // ✅ Create a Task
 router.post("/", async (req, res) => {
   try {
-    const task = new Task(req.body);
-    await task.save();
+    const { title, description, dueDate, priority, status, assignee } = req.body;
+
+    // Ensure priority and status are in valid format
+    const task = await Task.create({
+      title,
+      description,
+      dueDate,
+      priority: priority.toLowerCase(), // "Low" → "low"
+      status: status.toLowerCase().replace(" ", "-"), // "In Progress" → "in-progress"
+      assignee, 
+      createdBy: req.user._id,  // userId from session
+      userId: req.user._id, // ensure userId is properly set
+    });
+
     res.status(201).json(task);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// ✅ Get All Tasks for a User
-router.get("/:userId", async (req, res) => {
+
+// ✅ Get All Tasks for the Logged-in User
+router.get("/", async (req, res) => {
   try {
-    const tasks = await Task.find({ userId: req.params.userId });
+    const tasks = await Task.find({ createdBy: req.user._id });
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Get a Single Task
+// ✅ Get a Single Task by Task ID
 router.get("/single/:taskId", async (req, res) => {
   try {
     const task = await Task.findById(req.params.taskId);
@@ -34,7 +55,7 @@ router.get("/single/:taskId", async (req, res) => {
   }
 });
 
-// ✅ Update a Task
+// ✅ Update a Task by Task ID
 router.put("/:taskId", async (req, res) => {
   try {
     const updatedTask = await Task.findByIdAndUpdate(
@@ -49,7 +70,7 @@ router.put("/:taskId", async (req, res) => {
   }
 });
 
-// ✅ Delete a Task
+// ✅ Delete a Task by Task ID
 router.delete("/:taskId", async (req, res) => {
   try {
     const deleted = await Task.findByIdAndDelete(req.params.taskId);
