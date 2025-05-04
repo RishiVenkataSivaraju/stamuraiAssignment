@@ -3,28 +3,42 @@
 import { useEffect, useState } from "react";
 
 export default function Dashboard() {
-  const [tasks, setTasks] = useState([]);
-  const [formData, setFormData] = useState({
+  const [users, setUsers]           = useState([]);
+  const [tasks, setTasks]           = useState([]);
+  const [formData, setFormData]     = useState({
     title: "",
     description: "",
     dueDate: "",
     priority: "low",
     status: "todo",
+    assignee: "",
   });
-  const [message, setMessage] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({});
+  const [message, setMessage]       = useState("");
+  const [editingId, setEditingId]   = useState(null);
+  const [editForm, setEditForm]     = useState({});
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount]     = useState(0);
 
-  // Fetch tasks on mount
   useEffect(() => {
+    fetchUsers();
     fetchTasks();
+    fetchNotifications();
   }, []);
+
+  // Fetch all registered users for the Assignee dropdown
+  const fetchUsers = async () => {
+    try {
+      const res  = await fetch("http://localhost:8080/users", { credentials: "include" });
+      const data = await res.json();
+      setUsers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    }
+  };
 
   const fetchTasks = async () => {
     try {
-      const res = await fetch("http://localhost:8080/tasks", {
-        credentials: "include",
-      });
+      const res  = await fetch("http://localhost:8080/tasks", { credentials: "include" });
       const data = await res.json();
       setTasks(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -33,8 +47,19 @@ export default function Dashboard() {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const res  = await fetch("http://localhost:8080/notifications", { credentials: "include" });
+      const data = await res.json();
+      setNotifications(data);
+      setUnreadCount(data.filter((n) => !n.read).length);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+    }
+  };
+
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleCreateTask = async (e) => {
@@ -47,9 +72,17 @@ export default function Dashboard() {
         body: JSON.stringify(formData),
       });
       if (res.ok) {
-        setFormData({ title: "", description: "", dueDate: "", priority: "low", status: "todo" });
+        setFormData({
+          title: "",
+          description: "",
+          dueDate: "",
+          priority: "low",
+          status: "todo",
+          assignee: "",
+        });
         setMessage("Task created successfully!");
         await fetchTasks();
+        await fetchNotifications();
       } else {
         const { error } = await res.json();
         setMessage(`Failed to create task: ${error}`);
@@ -68,12 +101,13 @@ export default function Dashboard() {
       dueDate: task.dueDate.slice(0, 10),
       priority: task.priority,
       status: task.status,
+      assignee: task.assignee || "",
     });
     setMessage("");
   };
 
   const handleEditChange = (e) => {
-    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+    setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const saveEdit = async (id) => {
@@ -88,6 +122,7 @@ export default function Dashboard() {
         setMessage("Task updated successfully!");
         setEditingId(null);
         await fetchTasks();
+        await fetchNotifications();
       } else {
         const { error } = await res.json();
         setMessage(`Failed to update task: ${error}`);
@@ -121,11 +156,53 @@ export default function Dashboard() {
     }
   };
 
+  const markAsRead = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:8080/notifications/${id}/read`, {
+        method: "PUT",
+        credentials: "include",
+      });
+      if (res.ok) {
+        await fetchNotifications();
+      }
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+    }
+  };
+
   return (
-    <div style={{ padding: "2rem", maxWidth: "600px", margin: "auto" }}>
+    <div style={{ padding: "2rem", maxWidth: "800px", margin: "auto" }}>
       <h1>Task Dashboard</h1>
 
-      <form onSubmit={handleCreateTask} style={{ marginBottom: "1rem" }}>
+      {/* Notification Bell */}
+      <div style={{ position: "relative", display: "inline-block", marginBottom: "1rem" }}>
+        <span
+          style={{
+            position: "absolute",
+            top: "-5px",
+            right: "-5px",
+            backgroundColor: "red",
+            color: "white",
+            borderRadius: "50%",
+            padding: "0.25rem 0.5rem",
+            fontSize: "12px",
+          }}
+        >
+          {unreadCount}
+        </span>
+        <button onClick={() => fetchNotifications()}>🔔 Notifications</button>
+        {/* Simple list below bell */}
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {notifications.map((n) => (
+            <li key={n._id} onClick={() => markAsRead(n._id)} style={{ cursor: "pointer" }}>
+              {n.message} <em>({new Date(n.createdAt).toLocaleString()})</em>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Task Creation Form */}
+      <form onSubmit={handleCreateTask} style={{ marginBottom: "2rem" }}>
         <input name="title" placeholder="Title" value={formData.title} onChange={handleInputChange} required />
         <br />
         <textarea name="description" placeholder="Description" value={formData.description} onChange={handleInputChange} required />
@@ -142,6 +219,13 @@ export default function Dashboard() {
           <option value="todo">To Do</option>
           <option value="in-progress">In Progress</option>
           <option value="completed">Completed</option>
+        </select>
+        <br />
+        <select name="assignee" value={formData.assignee} onChange={handleInputChange}>
+          <option value="">— Assign to —</option>
+          {users.map((u) => (
+            <option key={u._id} value={u._id}>{u.username}</option>
+          ))}
         </select>
         <br />
         <button type="submit">Create Task</button>
@@ -176,6 +260,13 @@ export default function Dashboard() {
                     <option value="completed">Completed</option>
                   </select>
                   <br />
+                  <select name="assignee" value={editForm.assignee} onChange={handleEditChange}>
+                    <option value="">— Assign to —</option>
+                    {users.map((u) => (
+                      <option key={u._id} value={u._id}>{u.username}</option>
+                    ))}
+                  </select>
+                  <br />
                   <button onClick={() => saveEdit(task._id)}>Save</button>
                   <button onClick={cancelEdit} style={{ marginLeft: "0.5rem" }}>Cancel</button>
                 </>
@@ -184,6 +275,7 @@ export default function Dashboard() {
                   <strong>{task.title}</strong> — {task.status} ({task.priority})<br />
                   <em>Due: {new Date(task.dueDate).toLocaleDateString()}</em><br />
                   <p>{task.description}</p>
+                  <p>Assigned to: {users.find(u => u._id === task.assignee)?.username || "—"}</p>
                   <button onClick={() => startEdit(task)}>Edit</button>
                   <button onClick={() => handleDelete(task._id)} style={{ marginLeft: "0.5rem" }}>Delete</button>
                 </>
@@ -195,4 +287,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
 
