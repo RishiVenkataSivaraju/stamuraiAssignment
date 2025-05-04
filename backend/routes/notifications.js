@@ -2,7 +2,7 @@ const express = require("express");
 const Notification = require("../Schemas/NotificationSchema");
 const router = express.Router();
 
-// Middleware to ensure user is logged in
+// ✅ Ensure user is logged in
 function ensureAuth(req, res, next) {
   if (req.isAuthenticated()) return next();
   res.status(401).send("Not authenticated");
@@ -29,6 +29,7 @@ router.put("/:id/read", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const notifs = await Notification.find({ user: req.user._id, read: false })
+      .sort({ createdAt: -1 })
       .populate("task", "title");
     res.json(notifs);
   } catch (err) {
@@ -36,7 +37,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 📢 OPTIONAL: Get all notifications (read + unread)
+// 📢 Get all notifications (read + unread)
 router.get("/all", async (req, res) => {
   try {
     const notifs = await Notification.find({ user: req.user._id })
@@ -48,7 +49,7 @@ router.get("/all", async (req, res) => {
   }
 });
 
-// ✅ OPTIONAL: Mark all notifications as read
+// ✅ Mark all notifications as read
 router.put("/mark-all-read", async (req, res) => {
   try {
     await Notification.updateMany(
@@ -62,3 +63,5 @@ router.put("/mark-all-read", async (req, res) => {
 });
 
 module.exports = router;
+
+
