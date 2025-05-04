@@ -10,7 +10,7 @@ function ensureAuth(req, res, next) {
 
 router.use(ensureAuth);
 
-// Mark notifications as read
+// 🔁 Mark a specific notification as read
 router.put("/:id/read", async (req, res) => {
   try {
     const notif = await Notification.findOneAndUpdate(
@@ -25,12 +25,37 @@ router.put("/:id/read", async (req, res) => {
   }
 });
 
-// Get unread notifications for current user
+// 🔔 Get all unread notifications for current user
 router.get("/", async (req, res) => {
   try {
     const notifs = await Notification.find({ user: req.user._id, read: false })
       .populate("task", "title");
     res.json(notifs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 📢 OPTIONAL: Get all notifications (read + unread)
+router.get("/all", async (req, res) => {
+  try {
+    const notifs = await Notification.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate("task", "title");
+    res.json(notifs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ✅ OPTIONAL: Mark all notifications as read
+router.put("/mark-all-read", async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { user: req.user._id, read: false },
+      { $set: { read: true } }
+    );
+    res.send("All notifications marked as read");
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
