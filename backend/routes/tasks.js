@@ -1,21 +1,21 @@
 const express = require("express");
 const Task = require("../Schemas/TaskSchema");
-const Notification = require('../Schemas/NotificationSchema');
+const Notification = require("../Schemas/NotificationSchema");
 const router = express.Router();
 
-// ✅ Ensure authentication middleware
+// Authentication guard
 function ensureAuth(req, res, next) {
   if (req.isAuthenticated()) return next();
   res.status(401).send("Not authenticated");
 }
-
 router.use(ensureAuth);
 
-// ✅ Create a Task
+// Create a Task (with notification)
 router.post("/", async (req, res) => {
   try {
     const { title, description, dueDate, priority, status, assignee } = req.body;
 
+    // Create the task
     const task = await Task.create({
       title,
       description,
@@ -27,12 +27,13 @@ router.post("/", async (req, res) => {
       userId: req.user._id,
     });
 
-    // ✅ Send notification if the assignee is someone else
+    // Notify the assignee (if different from creator)
     if (assignee && assignee.toString() !== req.user._id.toString()) {
       await Notification.create({
-        user: assignee,
-        task: task._id,
-        message: `You've been assigned a new task: "${task.title}"`,
+        recipient: assignee,             // who the notification is for
+        sender:    req.user._id,         // who triggered it
+        taskId:    task._id,             // which task
+        message:   `You've been assigned a new task: "${task.title}"`,
       });
     }
 
@@ -42,17 +43,22 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ✅ Get All Tasks for Logged-in User
+// Get all tasks created by the logged-in user
 router.get("/", async (req, res) => {
   try {
-    const tasks = await Task.find({ createdBy: req.user._id });
+    const tasks = await Task.find({
+      $or: [
+        { createdBy: req.user._id },   // Tasks created by the user
+        { assignee: req.user._id }      // Tasks assigned to the user
+      ]
+    });
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch tasks" });
   }
 });
 
-// ✅ Get a Single Task
+// Get one task by ID
 router.get("/single/:taskId", async (req, res) => {
   try {
     const task = await Task.findById(req.params.taskId);
@@ -63,7 +69,7 @@ router.get("/single/:taskId", async (req, res) => {
   }
 });
 
-// ✅ Update a Task
+// Update a task by ID
 router.put("/:taskId", async (req, res) => {
   try {
     const updatedTask = await Task.findByIdAndUpdate(
@@ -78,7 +84,7 @@ router.put("/:taskId", async (req, res) => {
   }
 });
 
-// ✅ Delete a Task
+// Delete a task by ID
 router.delete("/:taskId", async (req, res) => {
   try {
     const deleted = await Task.findByIdAndDelete(req.params.taskId);
@@ -90,4 +96,5 @@ router.delete("/:taskId", async (req, res) => {
 });
 
 module.exports = router;
+
 

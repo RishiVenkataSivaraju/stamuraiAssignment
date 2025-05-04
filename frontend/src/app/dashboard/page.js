@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 export default function Dashboard() {
-  const [users, setUsers]           = useState([]);
-  const [tasks, setTasks]           = useState([]);
-  const [formData, setFormData]     = useState({
+  const [users, setUsers] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
     dueDate: "",
@@ -13,11 +13,11 @@ export default function Dashboard() {
     status: "todo",
     assignee: "",
   });
-  const [message, setMessage]       = useState("");
-  const [editingId, setEditingId]   = useState(null);
-  const [editForm, setEditForm]     = useState({});
+  const [message, setMessage] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount]     = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     fetchUsers();
@@ -25,10 +25,9 @@ export default function Dashboard() {
     fetchNotifications();
   }, []);
 
-  // Fetch all registered users for the Assignee dropdown
   const fetchUsers = async () => {
     try {
-      const res  = await fetch("http://localhost:8080/users", { credentials: "include" });
+      const res = await fetch("http://localhost:8080/users", { credentials: "include" });
       const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -38,7 +37,7 @@ export default function Dashboard() {
 
   const fetchTasks = async () => {
     try {
-      const res  = await fetch("http://localhost:8080/tasks", { credentials: "include" });
+      const res = await fetch("http://localhost:8080/tasks", { credentials: "include" });
       const data = await res.json();
       setTasks(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -49,7 +48,7 @@ export default function Dashboard() {
 
   const fetchNotifications = async () => {
     try {
-      const res  = await fetch("http://localhost:8080/notifications", { credentials: "include" });
+      const res = await fetch("http://localhost:8080/notifications", { credentials: "include" });
       const data = await res.json();
       setNotifications(data);
       setUnreadCount(data.filter((n) => !n.read).length);
@@ -191,7 +190,6 @@ export default function Dashboard() {
           {unreadCount}
         </span>
         <button onClick={() => fetchNotifications()}>🔔 Notifications</button>
-        {/* Simple list below bell */}
         <ul style={{ listStyle: "none", padding: 0 }}>
           {notifications.map((n) => (
             <li key={n._id} onClick={() => markAsRead(n._id)} style={{ cursor: "pointer" }}>
@@ -275,7 +273,7 @@ export default function Dashboard() {
                   <strong>{task.title}</strong> — {task.status} ({task.priority})<br />
                   <em>Due: {new Date(task.dueDate).toLocaleDateString()}</em><br />
                   <p>{task.description}</p>
-                  <p>Assigned to: {users.find(u => u._id === task.assignee)?.username || "—"}</p>
+                  <p>Assigned to: {users.find(u => u._id === task.assignee)?.username || "Unassigned"}</p>
                   <button onClick={() => startEdit(task)}>Edit</button>
                   <button onClick={() => handleDelete(task._id)} style={{ marginLeft: "0.5rem" }}>Delete</button>
                 </>
@@ -287,5 +285,6 @@ export default function Dashboard() {
     </div>
   );
 }
+
 
 

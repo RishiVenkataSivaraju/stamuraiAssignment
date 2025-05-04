@@ -48,6 +48,10 @@ app.use("/tasks", taskRoutes);
 const notifications = require("./routes/notifications");
 app.use("/notifications", notifications);
 
+const userRoutes = require("./routes/users");
+app.use("/users", userRoutes);
+
+
 
 
 // Test Route (optional, can be removed later)

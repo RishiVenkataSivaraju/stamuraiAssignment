@@ -5,17 +5,17 @@ const NotificationSchema = new mongoose.Schema(
     recipient: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true, // who the notification is for
+      required: true,  // who the notification is for
     },
     sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true, // who triggered the notification (optional but useful)
+      required: true,  // who triggered the notification
     },
     taskId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Task",
-      required: true, // the related task
+      required: true,  // which task
     },
     message: {
       type: String,
@@ -30,4 +30,5 @@ const NotificationSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Notification", NotificationSchema);
+
 
