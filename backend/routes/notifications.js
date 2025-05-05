@@ -26,28 +26,48 @@ router.put("/:id/read", async (req, res) => {
 });
 
 // 🔔 Get all unread notifications for current user
-router.get("/", async (req, res) => {
+// router.get("/", async (req, res) => {
+//   try {
+//     const notifs = await Notification.find({ user: req.user._id, read: false })
+//       .sort({ createdAt: -1 })
+//       .populate("task", "title");
+//     res.json(notifs);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// 📢 Get all notifications (read + unread)
+router.get("/all", async (req, res) => {
+  console.log("GET /all called");
   try {
-    const notifs = await Notification.find({ user: req.user._id, read: false })
+    const notifs = await Notification.find()
       .sort({ createdAt: -1 })
-      .populate("task", "title");
+      .populate("taskId", "title"); // Assuming the field in your model is taskId, not task
+
     res.json(notifs);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// 📢 Get all notifications (read + unread)
-router.get("/all", async (req, res) => {
+router.get("/unread", async (req, res) => {
   try {
-    const notifs = await Notification.find({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .populate("task", "title");
+    const notifs = await Notification.find({
+      recipient: req.user._id,  // only notifications for logged-in user
+      isRead: false             // and only unread ones
+    })
+    .sort({ createdAt: -1 })
+    .populate("taskId", "title");  // assuming taskId is the correct field
+
     res.json(notifs);
   } catch (err) {
+    console.error("❌ Error fetching unread notifications:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ✅ Mark all notifications as read
 router.put("/mark-all-read", async (req, res) => {

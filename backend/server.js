@@ -53,10 +53,22 @@ app.use("/users", userRoutes);
 
 
 
+const isAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.status(401).json({ message: 'Unauthorized' });
+};
 
 // Test Route (optional, can be removed later)
 app.get("/", (req, res) => {
     res.send("Hello from Express backend");
+});
+
+
+app.get('/me', isAuthenticated, (req, res) => {
+    res.json(req.user);
+    console.log(req.user)// req.user is set by Passport after login
 });
 
 const PORT = process.env.PORT || 8080;

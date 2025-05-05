@@ -65,8 +65,9 @@ export default function Dashboard() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch(`${API_BASE}/notifications`, { credentials: "include" });
+      const res = await fetch(`${API_BASE}/notifications/unread`, { credentials: "include" });
       const data = await res.json();
+      console.log(data);
       setNotifications(data);
       setUnreadCount(data.filter((n) => !n.isRead).length);
     } catch (err) {
@@ -193,103 +194,103 @@ export default function Dashboard() {
   return (
     <div style={{ padding: "2rem", maxWidth: "800px", margin: "auto" }}>
       <h1>Task Dashboard</h1>
-<div style={{ position: "relative", display: "inline-block", marginBottom: "1rem" }}>
-  <button
-    type="button"
-    aria-label="View notifications"
-    onClick={() => setNotifOpen((o) => !o)}
-    style={{
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-      fontSize: "24px",
-      position: "relative",
-    }}
-  >
-    🔔
-    {unreadCount > 0 && (
-      <span
-        style={{
-          position: "absolute",
-          top: "-6px",
-          right: "-10px",
-          backgroundColor: "#e63946",
-          color: "#fff",
-          borderRadius: "50%",
-          padding: "2px 6px",
-          fontSize: "12px",
-          fontWeight: "bold",
-          lineHeight: 1,
-        }}
-      >
-        {unreadCount}
-      </span>
-    )}
-  </button>
-
-  {notifOpen && (
-    <div
-      style={{
-        position: "absolute",
-        top: "110%",
-        right: 0,
-        width: "320px",
-        maxHeight: "400px",
-        overflowY: "auto",
-        border: "1px solid #ddd",
-        borderRadius: "6px",
-        backgroundColor: "#ffffff",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-        zIndex: 1000,
-        padding: "0.75rem",
-        animation: "fadeIn 0.2s ease-in-out",
-      }}
-    >
-      {notifications.length === 0 ? (
-        <p style={{ fontStyle: "italic", color: "#888", textAlign: "center" }}>
-          No new notifications
-        </p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {notifications.map((n) => (
-            <li
-              key={n._id}
+      <div style={{ position: "relative", display: "inline-block", marginBottom: "1rem" }}>
+        <button
+          type="button"
+          aria-label="View notifications"
+          onClick={() => setNotifOpen((o) => !o)}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "24px",
+            position: "relative",
+          }}
+        >
+          🔔
+          {unreadCount > 0 && (
+            <span
               style={{
-                borderBottom: "1px solid #eee",
-                padding: "0.5rem 0",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
+                position: "absolute",
+                top: "-6px",
+                right: "-10px",
+                backgroundColor: "#e63946",
+                color: "#fff",
+                borderRadius: "50%",
+                padding: "2px 6px",
+                fontSize: "12px",
+                fontWeight: "bold",
+                lineHeight: 1,
               }}
             >
-              <div style={{ flex: 1, paddingRight: "0.5rem" }}>
-                <strong>{n.task?.title || "Task Update"}</strong>
-                <br />
-                <small style={{ color: "#666" }}>
-                  {new Date(n.createdAt).toLocaleString()}
-                </small>
-              </div>
-              <button
-                onClick={() => markAsRead(n._id)}
-                style={{
-                  backgroundColor: "#0070f3",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "4px",
-                  padding: "4px 8px",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                }}
-              >
-                Seen
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )}
-</div>
+              {unreadCount}
+            </span>
+          )}
+        </button>
+
+        {notifOpen && (
+          <div
+            style={{
+              position: "absolute",
+              top: "110%",
+              right: 0,
+              width: "320px",
+              maxHeight: "400px",
+              overflowY: "auto",
+              border: "1px solid #ddd",
+              borderRadius: "6px",
+              backgroundColor: "#ffffff",
+              boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+              zIndex: 1000,
+              padding: "0.75rem",
+              animation: "fadeIn 0.2s ease-in-out",
+            }}
+          >
+            {notifications.length === 0 ? (
+              <p style={{ fontStyle: "italic", color: "#888", textAlign: "center" }}>
+                No new notifications
+              </p>
+            ) : (
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {notifications.map((n) => (
+                  <li
+                    key={n._id}
+                    style={{
+                      borderBottom: "1px solid #eee",
+                      padding: "0.5rem 0",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <div style={{ flex: 1, paddingRight: "0.5rem" }}>
+                      <strong>{n.task?.title || "Task Update"}</strong>
+                      <br />
+                      <small style={{ color: "#666" }}>
+                        {new Date(n.createdAt).toLocaleString()}
+                      </small>
+                    </div>
+                    <button
+                      onClick={() => markAsRead(n._id)}
+                      style={{
+                        backgroundColor: "#0070f3",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "4px 8px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Seen
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
 
 
       {/* ─── Task Creation Form ─────────────────────────────── */}
