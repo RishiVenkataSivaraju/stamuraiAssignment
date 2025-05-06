@@ -14,16 +14,20 @@ router.use(ensureAuth);
 router.put("/:id/read", async (req, res) => {
   try {
     const notif = await Notification.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
-      { read: true },
+      { _id: req.params.id, recipient: req.user._id },  // ✅ 'recipient' instead of 'user'
+      { isRead: true },                                  // ✅ 'isRead' instead of 'read'
       { new: true }
     );
+
     if (!notif) return res.status(404).send("Notification not found");
+
     res.json(notif);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Error marking notification as read:", err);
+    res.status(500).json({ error: err.message });        // ✅ fixed 'err. Message' typo
   }
 });
+
 
 // 🔔 Get all unread notifications for current user
 // router.get("/", async (req, res) => {
@@ -39,18 +43,17 @@ router.put("/:id/read", async (req, res) => {
 
 // 📢 Get all notifications (read + unread)
 router.get("/all", async (req, res) => {
-  console.log("GET /all called");
   try {
-    const notifs = await Notification.find()
+    const notifs = await Notification.find({ recipient: req.user._id })
       .sort({ createdAt: -1 })
-      .populate("taskId", "title"); // Assuming the field in your model is taskId, not task
-
+      .populate("taskId", "title")
+      .populate("sender", "username"); // <-- Important
     res.json(notifs);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 router.get("/unread", async (req, res) => {
   try {
@@ -58,8 +61,9 @@ router.get("/unread", async (req, res) => {
       recipient: req.user._id,  // only notifications for logged-in user
       isRead: false             // and only unread ones
     })
-    .sort({ createdAt: -1 })
-    .populate("taskId", "title");  // assuming taskId is the correct field
+      .sort({ createdAt: -1 })
+      .populate("taskId", "title")
+      .populate("sender", "username");  // assuming taskId is the correct field
 
     res.json(notifs);
   } catch (err) {

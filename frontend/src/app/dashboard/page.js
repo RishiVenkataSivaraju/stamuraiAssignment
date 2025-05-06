@@ -194,103 +194,120 @@ export default function Dashboard() {
   return (
     <div style={{ padding: "2rem", maxWidth: "800px", margin: "auto" }}>
       <h1>Task Dashboard</h1>
-      <div style={{ position: "relative", display: "inline-block", marginBottom: "1rem" }}>
-        <button
-          type="button"
-          aria-label="View notifications"
-          onClick={() => setNotifOpen((o) => !o)}
+     <div
+  style={{
+    position: "relative",
+    display: "inline-block",
+    marginBottom: "1rem",
+  }}
+>
+  <button
+    type="button"
+    aria-label="View notifications"
+    onClick={() => setNotifOpen((o) => !o)}
+    style={{
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      fontSize: "24px",
+      position: "relative",
+    }}
+  >
+    🔔
+    {unreadCount > 0 && (
+      <span
+        style={{
+          position: "absolute",
+          top: "-6px",
+          right: "-10px",
+          backgroundColor: "#e63946",
+          color: "#fff",
+          borderRadius: "50%",
+          padding: "2px 6px",
+          fontSize: "12px",
+          fontWeight: "bold",
+          lineHeight: 1,
+        }}
+      >
+        {unreadCount}
+      </span>
+    )}
+  </button>
+
+  {notifOpen && (
+    <div
+      style={{
+        position: "absolute",
+        top: "110%",
+        right: 0,
+        width: "320px",
+        maxHeight: "400px",
+        overflowY: "auto",
+        border: "1px solid #ddd",
+        borderRadius: "6px",
+        backgroundColor: "#ffffff",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+        zIndex: 1000,
+        padding: "0.75rem",
+        animation: "fadeIn 0.2s ease-in-out",
+      }}
+    >
+      {notifications.length === 0 ? (
+        <p
           style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "24px",
-            position: "relative",
+            fontStyle: "italic",
+            color: "#888",
+            textAlign: "center",
           }}
         >
-          🔔
-          {unreadCount > 0 && (
-            <span
+          No new notifications
+        </p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {notifications.map((n) => (
+            <li
+              key={n._id}
               style={{
-                position: "absolute",
-                top: "-6px",
-                right: "-10px",
-                backgroundColor: "#e63946",
-                color: "#fff",
-                borderRadius: "50%",
-                padding: "2px 6px",
-                fontSize: "12px",
-                fontWeight: "bold",
-                lineHeight: 1,
+                borderBottom: "1px solid #eee",
+                padding: "0.5rem 0",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
               }}
             >
-              {unreadCount}
-            </span>
-          )}
-        </button>
+              <div style={{ flex: 1, paddingRight: "0.5rem" }}>
+                <strong>{n.taskId?.title || "Untitled Task"}</strong>
+                <br />
+                <small style={{ color: "#666" }}>
+                  Sent by: {n.sender?.username || "Unknown"}
+                </small>
+                <br />
+                <small style={{ color: "#999" }}>
+                  {new Date(n.createdAt).toLocaleString()}
+                </small>
+              </div>
+              <button
+                onClick={() => markAsRead(n._id)}
+                style={{
+                  backgroundColor: "#0070f3",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "4px 8px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                }}
+              >
+                Seen
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )}
+</div>
 
-        {notifOpen && (
-          <div
-            style={{
-              position: "absolute",
-              top: "110%",
-              right: 0,
-              width: "320px",
-              maxHeight: "400px",
-              overflowY: "auto",
-              border: "1px solid #ddd",
-              borderRadius: "6px",
-              backgroundColor: "#ffffff",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-              zIndex: 1000,
-              padding: "0.75rem",
-              animation: "fadeIn 0.2s ease-in-out",
-            }}
-          >
-            {notifications.length === 0 ? (
-              <p style={{ fontStyle: "italic", color: "#888", textAlign: "center" }}>
-                No new notifications
-              </p>
-            ) : (
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {notifications.map((n) => (
-                  <li
-                    key={n._id}
-                    style={{
-                      borderBottom: "1px solid #eee",
-                      padding: "0.5rem 0",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <div style={{ flex: 1, paddingRight: "0.5rem" }}>
-                      <strong>{n.task?.title || "Task Update"}</strong>
-                      <br />
-                      <small style={{ color: "#666" }}>
-                        {new Date(n.createdAt).toLocaleString()}
-                      </small>
-                    </div>
-                    <button
-                      onClick={() => markAsRead(n._id)}
-                      style={{
-                        backgroundColor: "#0070f3",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        padding: "4px 8px",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                      }}
-                    >
-                      Seen
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-      </div>
 
 
       {/* ─── Task Creation Form ─────────────────────────────── */}
@@ -341,96 +358,104 @@ export default function Dashboard() {
 
       {/* ─── Task List ───────────────────────────────────────── */}
       <h2>My Tasks</h2>
-      <ul style={{ padding: 0, listStyle: "none" }}>
-        {tasks.length === 0 ? (
-          <li>No tasks found</li>
-        ) : (
-          tasks.map((task) => {
-            // normalize creator ID
-            const creatorId =
-              typeof task.createdBy === "string" ? task.createdBy : task.createdBy?._id;
-            const isAuthor = currentUser?._id === creatorId;
+     <ul style={{ padding: 0, listStyle: "none" }}>
+  {tasks.length === 0 ? (
+    <li>No tasks found</li>
+  ) : (
+    tasks.map((task) => {
+      const creatorId =
+        typeof task.createdBy === "string" ? task.createdBy : task.createdBy?._id;
+      const isAuthor = currentUser?._id === creatorId;
 
-            return (
-              <li
-                key={task._id}
-                style={{ marginBottom: "1rem", border: "1px solid #ccc", padding: "1rem" }}
-              >
-                {editingId === task._id ? (
-                  <>
-                    <input name="title" value={editForm.title} onChange={handleEditChange} required />
-                    <br />
-                    <textarea
-                      name="description"
-                      value={editForm.description}
-                      onChange={handleEditChange}
-                      required
-                    />
-                    <br />
-                    <input
-                      type="date"
-                      name="dueDate"
-                      value={editForm.dueDate}
-                      onChange={handleEditChange}
-                      required
-                    />
-                    <br />
-                    <select name="priority" value={editForm.priority} onChange={handleEditChange}>
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                    </select>
-                    <br />
-                    <select name="status" value={editForm.status} onChange={handleEditChange}>
-                      <option value="todo">To Do</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                    <br />
-                    <select name="assignee" value={editForm.assignee} onChange={handleEditChange}>
-                      <option value="">— Assign to —</option>
-                      {users.map((u) => (
-                        <option key={u._id} value={u._id}>
-                          {u.username}
-                        </option>
-                      ))}
-                    </select>
-                    <br />
-                    <button onClick={() => saveEdit(task._id)} >
-                      Save
-                    </button>
-                    <button onClick={cancelEdit} style={{ marginLeft: "0.5rem" }}>
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <strong>{task.title}</strong> — {task.status} ({task.priority})
-                    <br />
-                    <em>Due: {new Date(task.dueDate).toLocaleDateString()}</em>
-                    <br />
-                    <p>{task.description}</p>
-                    <p>
-                      Assigned to:{" "}
-                      {users.find((u) => u._id === task.assignee)?.username || "Unassigned"}
-                    </p>
-                    <p>
-                      Assigned by:{" "}
-                      {users.find((u) => u._id === creatorId)?.username || "Unknown"}
-                    </p>
-                    <button onClick={() => startEdit(task)} >
-                      Edit
-                    </button>
-                    <button onClick={() => handleDelete(task._id)} style={{ marginLeft: "0.5rem" }}>
-                      Delete
-                    </button>
-                  </>
-                )}
-              </li>
-            );
-          })
-        )}
-      </ul>
+      const isOverdue =
+        !task.status?.toLowerCase().includes("completed") &&
+        new Date(task.dueDate) < new Date();
+
+      return (
+        <li
+          key={task._id}
+          style={{ marginBottom: "1rem", border: "1px solid #ccc", padding: "1rem" }}
+        >
+          {editingId === task._id ? (
+            <>
+              <input name="title" value={editForm.title} onChange={handleEditChange} required />
+              <br />
+              <textarea
+                name="description"
+                value={editForm.description}
+                onChange={handleEditChange}
+                required
+              />
+              <br />
+              <input
+                type="date"
+                name="dueDate"
+                value={editForm.dueDate}
+                onChange={handleEditChange}
+                required
+              />
+              <br />
+              <select name="priority" value={editForm.priority} onChange={handleEditChange}>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+              <br />
+              <select name="status" value={editForm.status} onChange={handleEditChange}>
+                <option value="todo">To Do</option>
+                <option value="in-progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+              <br />
+              <select name="assignee" value={editForm.assignee} onChange={handleEditChange}>
+                <option value="">— Assign to —</option>
+                {users.map((u) => (
+                  <option key={u._id} value={u._id}>
+                    {u.username}
+                  </option>
+                ))}
+              </select>
+              <br />
+              <button onClick={() => saveEdit(task._id)}>Save</button>
+              <button onClick={cancelEdit} style={{ marginLeft: "0.5rem" }}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <strong>{task.title}</strong> — {task.status} ({task.priority})
+              <br />
+              <em>Due: {new Date(task.dueDate).toLocaleDateString()}</em>
+              <br />
+              <p>{task.description}</p>
+              <p>
+                Assigned to:{" "}
+                {users.find((u) => u._id === task.assignee)?.username || "Unassigned"}
+              </p>
+              <p>
+                Assigned by:{" "}
+                {users.find((u) => u._id === creatorId)?.username || "Unknown"}
+              </p>
+
+              {isOverdue ? (
+                <span style={{ color: "red", fontWeight: "bold" }}>
+                  ⚠ Deadline crossed
+                </span>
+              ) : (
+                <button onClick={() => startEdit(task)}>Edit</button>
+              )}
+
+              <button onClick={() => handleDelete(task._id)} style={{ marginLeft: "0.5rem" }}>
+                Delete
+              </button>
+            </>
+          )}
+        </li>
+      );
+    })
+  )}
+</ul>
+
     </div>
   );
 }
