@@ -15,7 +15,6 @@ router.post("/", async (req, res) => {
   try {
     const { title, description, dueDate, priority, status, assignee } = req.body;
 
-    // Create the task
     const task = await Task.create({
       title,
       description,
@@ -27,13 +26,12 @@ router.post("/", async (req, res) => {
       userId: req.user._id,
     });
 
-    // Notify the assignee (if different from creator)
     if (assignee && assignee.toString() !== req.user._id.toString()) {
       await Notification.create({
-        recipient: assignee,             // who the notification is for
-        sender:    req.user._id,         // who triggered it
-        taskId:    task._id,             // which task
-        message:   `You've been assigned a new task: "${task.title}"`,
+        recipient: assignee,
+        sender: req.user._id,
+        taskId: task._id,
+        message: `You've been assigned a new task: "${task.title}"`,
       });
     }
 
@@ -43,15 +41,49 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Get all tasks created by the logged-in user
+// Get all tasks created by or assigned to the logged-in user, with search and filters
 router.get("/", async (req, res) => {
   try {
-    const tasks = await Task.find({
+    const { search, status, priority, dueBefore, dueAfter } = req.query;
+
+    const query = {
       $or: [
-        { createdBy: req.user._id },   // Tasks created by the user
-        { assignee: req.user._id }      // Tasks assigned to the user
+        { createdBy: req.user._id },
+        { assignee: req.user._id }
       ]
-    });
+    };
+
+    // Search by title or description
+    if (search) {
+      const searchRegex = { $regex: search, $options: "i" };
+      query.$and = [
+        {
+          $or: [
+            { title: searchRegex },
+            { description: searchRegex }
+          ]
+        }
+      ];
+    }
+
+    // Filter by status
+    if (status) {
+      query.status = status.toLowerCase().replace(" ", "-");
+    }
+
+    // Filter by priority
+    if (priority) {
+      query.priority = priority.toLowerCase();
+    }
+
+    // Filter by due date range
+    if (dueBefore || dueAfter) {
+      query.dueDate = {};
+      if (dueBefore) query.dueDate.$lte = new Date(dueBefore);
+      if (dueAfter) query.dueDate.$gte = new Date(dueAfter);
+    }
+
+    const tasks = await Task.find(query);
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch tasks" });
@@ -96,5 +128,6 @@ router.delete("/:taskId", async (req, res) => {
 });
 
 module.exports = router;
+
 
 
