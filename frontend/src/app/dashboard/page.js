@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// import SearchBar from "../components/SearchBar"; 
+import SearchBar from "../components/searchbar";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
@@ -360,6 +360,7 @@ export default function Dashboard() {
 
       {/* ─── Task List ───────────────────────────────────────── */}
       <h2>My Tasks</h2>
+      <SearchBar onResults={setTasks} />
       <ul style={{ padding: 0, listStyle: "none" }}>
         {tasks.length === 0 ? (
           <li>No tasks found</li>

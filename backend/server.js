@@ -10,8 +10,10 @@ dotenv.config();  // Load environment variables
 
 const app = express();
 app.use(cors({
-    origin: "http://localhost:3000", // Allow requests from frontend
-    credentials: true,              // Allow sending cookies (for session)
+  origin: 'http://localhost:3000', // Your frontend URL
+  methods: 'GET, POST, PUT, DELETE', // Allowed HTTP methods
+  allowedHeaders: 'Content-Type, Authorization', // Allowed headers
+  credentials: true // Allow cookies or credentials
 }));
 
 // 1. MongoDB Connection

@@ -90,40 +90,64 @@ router.get("/", async (req, res) => {
   }
 });
 
-
 router.get("/search", async (req, res) => {
   try {
-    const { query } = req.query;
+    // Extract query parameters from request
+    const { query, priority, status, dueBefore, dueAfter, overdue } = req.query;
 
-    if (!query) {
-      return res.status(400).json({ error: "Search query is required" });
-    }
+    const filter = {
+      $or: [
+        { createdBy: req.user._id },  // Assuming you're filtering by user (authentication logic)
+        { assignee: req.user._id },
+      ]
+    };
 
-    const searchRegex = { $regex: query, $options: "i" };
-
-    const searchConditions = {
-      $and: [
+    // Search by title or description
+    if (query) {
+      const searchRegex = { $regex: query, $options: "i" };
+      filter.$and = [
         {
           $or: [
             { title: searchRegex },
             { description: searchRegex }
           ]
-        },
-        {
-          $or: [
-            { createdBy: req.user._id },
-            { assignee: req.user._id }
-          ]
         }
-      ]
-    };
+      ];
+    }
 
-    const results = await Task.find(searchConditions);
-    res.json(results);
+    // Filter by priority
+    if (priority) {
+      filter.priority = priority.toLowerCase();
+    }
+
+    // Filter by status
+    if (status) {
+      filter.status = status.toLowerCase();
+    }
+
+    // Filter by due date range (before and after)
+    if (dueBefore || dueAfter) {
+      filter.dueDate = {};
+      if (dueBefore) filter.dueDate.$lte = new Date(dueBefore);
+      if (dueAfter) filter.dueDate.$gte = new Date(dueAfter);
+    }
+
+    // Filter for overdue tasks (tasks where due date has passed)
+    if (overdue) {
+      filter.dueDate = filter.dueDate || {};
+      filter.dueDate.$lt = new Date();  // Tasks due before the current date
+    }
+
+    // Query the database for tasks matching the filters
+    const tasks = await Task.find(filter);
+    res.json(tasks);  // Return the filtered tasks as the response
   } catch (err) {
-    res.status(500).json({ error: "Search failed" });
+    console.error("Error fetching tasks:", err);
+    res.status(500).json({ error: "Failed to fetch tasks" });
   }
 });
+
+
 
 // Get one task by ID
 router.get("/single/:taskId", async (req, res) => {
