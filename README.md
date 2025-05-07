@@ -49,7 +49,7 @@ A full-stack **Task Management System** built with the **MERN stack (MongoDB, Ex
 - Task assignment and basic notification logic.
 
 ### 🎨 Frontend:
-- Built with React and TailwindCSS.
+- Built with React and CSS.
 - Components:
   - **AuthForm** – Login/Register.
   - **TaskForm** – Create and update tasks.
