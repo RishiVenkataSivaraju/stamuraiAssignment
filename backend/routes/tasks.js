@@ -90,6 +90,41 @@ router.get("/", async (req, res) => {
   }
 });
 
+
+router.get("/search", async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.status(400).json({ error: "Search query is required" });
+    }
+
+    const searchRegex = { $regex: query, $options: "i" };
+
+    const searchConditions = {
+      $and: [
+        {
+          $or: [
+            { title: searchRegex },
+            { description: searchRegex }
+          ]
+        },
+        {
+          $or: [
+            { createdBy: req.user._id },
+            { assignee: req.user._id }
+          ]
+        }
+      ]
+    };
+
+    const results = await Task.find(searchConditions);
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: "Search failed" });
+  }
+});
+
 // Get one task by ID
 router.get("/single/:taskId", async (req, res) => {
   try {
